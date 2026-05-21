@@ -45,12 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return isDark() ? '#94a3b8' : '#64748b';
     }
 
-    // Live clock running
-    setInterval(() => {
-        const now = new Date();
-        const dateStr = now.toISOString().replace('T', ' ').substring(0, 19);
-        document.getElementById('clk').innerText = `SYS ${dateStr} UTC`;
-    }, 1000);
 
     // Theme toggler action
     function toggleTheme() {
