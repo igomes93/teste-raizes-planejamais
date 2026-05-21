@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planeja+ | Portal de Monitoramento Participativo</title>
+    <!-- Chart.js 4.x CDN (using the exact one from user prompt) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <!-- Fonts from user prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/static/styles.css?v=4">
+</head>
+<body>
+    <!-- Background Canvas and Scanline -->
+    <canvas id="bgc"></canvas>
+    <div class="sl"></div>
+    
+    <!-- Custom Tooltip -->
+    <div id="tt">
+        <div class="tt-t" id="tt-t"></div>
+        <div id="tt-b"></div>
+    </div>
+
+    <div class="ct">
+        <!-- Header Section -->
+        <div class="hdr">
+            <div class="logo">
+                <div class="logo-img-container">
+                    <img src="/static/logo.png" alt="Associação Raízes Logo" class="logo-img">
+                </div>
+                <div>
+                    <div class="ttl">PLANEJA<span>+</span><span class="sdot"></span></div>
+                    <div class="clk2" id="clk">SYSTEM ONLINE</div>
+                </div>
+            </div>
+            
+            <!-- Tab Navigation inside header -->
+            <div class="tabs-nav">
+                <button class="tbtn tab-btn active" data-tab="tab-atividades">
+                    <span class="tab-btn-activity">ATIVIDADE 1</span>
+                    <span class="tab-btn-label">[ ATIVIDADES & METAS ]</span>
+                </button>
+                <button class="tbtn tab-btn" data-tab="tab-royalties">
+                    <span class="tab-btn-activity">ATIVIDADE 2</span>
+                    <span class="tab-btn-label">[ ROYALTIES & FISCAL ]</span>
+                </button>
+            </div>
+            
+            <!-- Controls -->
+            <div class="hdr-r">
+                <button class="tbtn" id="tbtn">[ DARK ]</button>
+            </div>
+        </div>
+
+        <!-- TAB 1: ATIVIDADES E METAS -->
+        <section id="tab-atividades" class="tab-content active">
+            <!-- Filters Card -->
+            <div class="cb filter-cb" style="margin-bottom: 14px;">
+                <div class="ch">
+                    <div class="ct2">PAINEL DE FILTROS</div>
+                    <div class="cs">Selecione o município, status de planejamento ou categoria para recalcular os dados.</div>
+                </div>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label>MUNICÍPIO</label>
+                        <div class="multiselect" id="ms-municipio">
+                            <div class="multiselect-trigger" id="ms-trigger-municipio">
+                                <span id="ms-display-municipio">Todos os Municípios</span>
+                                <span class="ms-arrow">▾</span>
+                            </div>
+                            <div class="multiselect-dropdown" id="ms-dropdown-municipio"></div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-planejada">PLANEJAMENTO</label>
+                        <select id="filter-planejada">
+                            <option value="Todos">Todas as Atividades</option>
+                            <option value="Planejada">Apenas Planejadas</option>
+                            <option value="Não Prevista">Apenas Não Previstas</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-categoria">META / LINHA DE AÇÃO</label>
+                        <select id="filter-categoria">
+                            <option value="Todos">Todas as Metas</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>PERÍODO (DATA DA ATIVIDADE)</label>
+                        <div class="date-range-inputs">
+                            <input type="date" id="filter-data-inicio">
+                            <span class="date-range-separator">até</span>
+                            <input type="date" id="filter-data-fim">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards Grid (8 columns or wrapping) -->
+            <div class="kg">
+                <!-- KPI 1 -->
+                <div class="kc">
+                    <div class="kn">KPI-01</div>
+                    <div class="kl">Atividades</div>
+                    <div class="kv" id="kpi-total-activities">--</div>
+                    <div class="kt" id="kpi-total-activities-sub">Faturamento de Ações</div>
+                </div>
+                <!-- KPI 2 -->
+                <div class="kc">
+                    <div class="kn">KPI-02</div>
+                    <div class="kl">Média Mensal</div>
+                    <div class="kv" id="kpi-media-mensal">--</div>
+                    <div class="kt" id="kpi-media-mensal-sub">Ações / Mês</div>
+                </div>
+                <!-- KPI 3 -->
+                <div class="kc">
+                    <div class="kn">KPI-03</div>
+                    <div class="kl">Participantes</div>
+                    <div class="kv" id="kpi-total-participants">--</div>
+                    <div class="kt" id="kpi-total-participants-sub">Mobilizados</div>
+                </div>
+                <!-- KPI 4 -->
+                <div class="kc">
+                    <div class="kn">KPI-04</div>
+                    <div class="kl">Média Part.</div>
+                    <div class="kv" id="kpi-avg-participants">--</div>
+                    <div class="kt" id="kpi-avg-participants-sub">Por Atividade</div>
+                </div>
+                <!-- KPI 5 -->
+                <div class="kc">
+                    <div class="kn">KPI-05</div>
+                    <div class="kl">Municípios</div>
+                    <div class="kv" id="kpi-active-municipalities">--</div>
+                    <div class="kt" id="kpi-active-municipalities-sub">Atendidos</div>
+                </div>
+                <!-- KPI 6 -->
+                <div class="kc">
+                    <div class="kn">KPI-06</div>
+                    <div class="kl">Não Previstas</div>
+                    <div class="kv" id="kpi-unplanned-ratio">--</div>
+                    <div class="kt" id="kpi-unplanned-ratio-sub">Desvio de Plano</div>
+                </div>
+                <!-- KPI 7 -->
+                <div class="kc">
+                    <div class="kn">KPI-07</div>
+                    <div class="kl">Pontualidade</div>
+                    <div class="kv" id="kpi-pontualidade-rate">--</div>
+                    <div class="kt" id="kpi-pontualidade-rate-sub">No Prazo</div>
+                </div>
+                <!-- KPI 8 (Cumprimento Global Progress) -->
+                <div class="kc progress-kc" style="min-width: 220px;">
+                    <div class="kn">KPI-08</div>
+                    <div class="kl">Metas Globais</div>
+                    <div class="kv" id="kpi-progress-percent">--%</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="kpi-progress-bar" style="width: 0%;"></div>
+                    </div>
+                    <div class="kt" id="kpi-progress-detail">-- de -- realizadas</div>
+                </div>
+            </div>
+
+            <!-- Charts Row 1: Temporal Trend & Planning Status -->
+            <div class="crow">
+                <div class="cb">
+                    <div class="ch">
+                        <div class="ct2">EVOLUÇÃO TEMPORAL DAS AÇÕES</div>
+                        <div class="cs">Quantidade mensal de atividades realizadas no programa Planeja+.</div>
+                    </div>
+                    <div class="lw">
+                        <canvas id="chart-monthly-trend"></canvas>
+                    </div>
+                </div>
+                <div class="cb">
+                    <div class="ch">
+                        <div class="ct2">STATUS DO PLANEJAMENTO</div>
+                        <div class="cs">Percentual de atividades executadas como planejadas vs ações extras (não previstas).</div>
+                    </div>
+                    <div class="dp">
+                        <div class="dw">
+                            <canvas id="chart-planning-donut" width="160" height="160"></canvas>
+                            <div class="dc">
+                                <div class="dcl">TOTAL</div>
+                                <div class="dcv" id="donut-total-val">--</div>
+                            </div>
+                        </div>
+                        <div class="dl" id="donut-legend"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row 2 (Includes the new activities per municipality chart + metas progress) -->
+            <div class="brow">
+                <div class="cb">
+                    <div class="ch">
+                        <div class="ct2">DISTRIBUIÇÃO DE ATIVIDADES POR MUNICÍPIO [ NOVO ]</div>
+                        <div class="cs">Contagem total de atividades realizadas em cada território do programa.</div>
+                    </div>
+                    <div class="bw-large" style="height: 400px;">
+                        <canvas id="chart-municipalities-bar"></canvas>
+                    </div>
+                </div>
+                <div class="cb">
+                    <div class="ch">
+                        <div class="ct2">EXECUÇÃO DE METAS POR CATEGORIA</div>
+                        <div class="cs">Status e progresso de cada tipo de atividade programada em relação à meta definida.</div>
+                    </div>
+                    <div class="metas-progress-list" id="metas-progress-list" style="height: 400px;">
+                        <p style="text-align: center; color: var(--muted); padding-top: 100px;">Carregando execução de metas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table Card -->
+            <div class="cb">
+                <div class="ch" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                    <div>
+                        <div class="ct2">DETALHAMENTO DAS AÇÕES REALIZADAS</div>
+                        <div class="cs">Lista completa de registros filtrados com busca dinâmica e paginação. <span id="table-record-count" class="bdg bt" style="margin-left: 10px;">--</span></div>
+                    </div>
+                    <div class="filter-group" style="flex-grow: 1; max-width: 320px; min-width: 200px;">
+                        <label for="filter-search">BUSCA RÁPIDA</label>
+                        <input type="text" id="filter-search" placeholder="Buscar por termo...">
+                    </div>
+                </div>
+                <div class="tw">
+                    <table id="activities-table">
+                        <thead>
+                            <tr>
+                                <th>Município</th>
+                                <th>Data Realizada</th>
+                                <th>Categoria</th>
+                                <th>Descrição da Atividade</th>
+                                <th>Local</th>
+                                <th>Part.</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="loading-cell">Carregando dados da tabela contábil...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-pagination" style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px; gap: 10px;">
+                    <button id="btn-page-prev" class="tbtn" disabled>[ ANTERIOR ]</button>
+                    <span id="pagination-info" class="clk2" style="margin: 0 10px;">Página 1 de 1</span>
+                    <button id="btn-page-next" class="tbtn" disabled>[ PRÓXIMA ]</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: ROYALTIES E FISCAL -->
+        <section id="tab-royalties" class="tab-content">
+            <!-- Intro Panel -->
+            <div class="ai" style="margin-bottom: 14px; border-color: var(--border);">
+                <div id="aitxt">
+                    <b>[ ATIVIDADE 2 — ANÁLISE COMPARATIVA DE ROYALTIES ]</b>
+                    Tomei a liberdade de, nesta Atividade 2, trazer três municípios fluminenses (<b>Niterói</b>, <b>Maricá</b> e <b>Armação dos Búzios</b>) para enriquecer o trabalho. Essa análise comparativa permite contrapor a dependência e a saúde fiscal de diferentes orçamentos sob a influência das rendas do petróleo, utilizando dados consolidados do exercício de 2024.
+                </div>
+            </div>
+
+            <!-- Municipality Detail Cards Grid -->
+            <div class="royalties-cards-grid" id="royalties-data-grid" style="margin-bottom: 14px;">
+                <!-- Filled dynamically by JS -->
+            </div>
+
+            <!-- Comparative Charts (Includes the original bar + the new absolute comparative grouped bar chart) -->
+            <div class="brow">
+                <div class="cb">
+                    <div class="ch">
+                        <div class="ct2">GRAU DE DEPENDÊNCIA DOS ORÇAMENTOS (%)</div>
+                        <div class="cs">Razão percentual entre a receita de royalties/PE creditada pela ANP e a receita total orçamentária.</div>
+                    </div>
+                    <div class="bw">
+                        <canvas id="chart-royalties-dependency"></canvas>
+                    </div>
+                </div>
+                <div class="cb">
+                    <div class="ch">
+                        <div class="ct2">COMPARATIVO DE GRANDEZAS FINANCEIRAS (EM BILHÕES DE REAIS) [ NOVO ]</div>
+                        <div class="cs">Análise comparativa absoluta em escala monetária das receitas orçamentárias totais, despesas e royalties.</div>
+                    </div>
+                    <div class="bw">
+                        <canvas id="chart-royalties-absolute-grouped"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical methodology details -->
+            <div class="cb">
+                <div class="ch">
+                    <div class="ct2">FONTES E METODOLOGIA</div>
+                    <div class="cs">Origem das informações contábeis e fiscais dos municípios.</div>
+                </div>
+                <div style="font-size: 0.82rem; line-height: 1.6; margin-top: 10px; color: var(--muted);">
+                    As informações orçamentárias foram coletadas nos Portais da Transparência dos municípios de Maricá, Niterói e Armação dos Búzios, especialmente em demonstrativos oficiais como Balanço Financeiro, Balanço Orçamentário, Comparativo da Receita Orçada com a Arrecadada e Prestação de Contas Anual. Para os dados de royalties e participações especiais, foi utilizada como referência a Agência Nacional do Petróleo, Gás Natural e Biocombustíveis — ANP, responsável pelo cálculo e divulgação das participações governamentais distribuídas aos municípios.
+                </div>
+            </div>
+        </section>
+
+
+    </div>
+
+    <!-- Controller Application Script -->
+    <script src="/static/app.js?v=3"></script>
+</body>
+</html>
